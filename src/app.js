@@ -11,14 +11,42 @@ import { serviceRouter } from "./routes/services.js";
 import { orderRouter } from "./routes/orders.js";
 import { contactRouter } from "./routes/contact.js";
 
+function isAllowedOrigin(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  const allowedOrigins = [process.env.CLIENT_URL, process.env.NEXT_PUBLIC_APP_URL].filter(Boolean).map((value) => value.trim());
+
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+    return true;
+  }
+
+  if (/^http:\/\/localhost:\d+$/i.test(origin)) {
+    return true;
+  }
+
+  return false;
+}
+
 
 export function buildApp() {
   const app = express();
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
 
   app.use(
     cors({
-      origin: clientUrl,
+      origin(origin, callback) {
+        if (isAllowedOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error(`CORS blocked for origin ${origin}`));
+      },
       credentials: true,
     })
   );
