@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+let connectionPromise;
+
 export async function connectDatabase(uri) {
   const connectionUri = uri || "mongodb://127.0.0.1:27017/portfolio";
 
@@ -30,4 +32,12 @@ export async function connectDatabaseWithFallback(primaryUri, fallbackUri) {
     console.error("Primary MongoDB connection failed. Trying fallback URI.");
     return connectDatabase(fallback);
   }
+}
+
+export function ensureDatabaseConnection(primaryUri, fallbackUri) {
+  if (!connectionPromise) {
+    connectionPromise = connectDatabaseWithFallback(primaryUri, fallbackUri);
+  }
+
+  return connectionPromise;
 }

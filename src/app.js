@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 
 import { attachSession, syncRoleToSession } from "./middleware/session.js";
 import { errorHandler, notFound } from "./middleware/error.js";
+import { ensureDatabaseConnection } from "./config/db.js";
 
 import { userRouter } from "./routes/users.js";
 import { serviceRouter } from "./routes/services.js";
@@ -31,6 +32,12 @@ function isAllowedOrigin(origin) {
   }
 
   return false;
+}
+
+function requireDatabaseConnection(request, response, next) {
+  ensureDatabaseConnection(process.env.MONGODB_URI, process.env.MONGODB_FALLBACK_URI)
+    .then(() => next())
+    .catch((error) => next(error));
 }
 
 export function buildApp() {
@@ -65,10 +72,10 @@ export function buildApp() {
     });
   });
 
-  app.use("/users", attachSession, syncRoleToSession, userRouter);
-  app.use("/services", attachSession, syncRoleToSession, serviceRouter);
-  app.use("/orders", attachSession, syncRoleToSession, orderRouter);
-  app.use("/contact", contactRouter);
+  app.use("/users", requireDatabaseConnection, attachSession, syncRoleToSession, userRouter);
+  app.use("/services", requireDatabaseConnection, attachSession, syncRoleToSession, serviceRouter);
+  app.use("/orders", requireDatabaseConnection, attachSession, syncRoleToSession, orderRouter);
+  app.use("/contact", requireDatabaseConnection, contactRouter);
 
   app.use(notFound);
   app.use(errorHandler);
