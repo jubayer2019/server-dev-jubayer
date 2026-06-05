@@ -33,7 +33,6 @@ function isAllowedOrigin(origin) {
   return false;
 }
 
-
 export function buildApp() {
   const app = express();
 
@@ -52,8 +51,6 @@ export function buildApp() {
   );
   app.use(cookieParser());
 
-  
-
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
 
@@ -68,7 +65,6 @@ export function buildApp() {
     });
   });
 
-  
   app.use("/users", attachSession, syncRoleToSession, userRouter);
   app.use("/services", attachSession, syncRoleToSession, serviceRouter);
   app.use("/orders", attachSession, syncRoleToSession, orderRouter);
@@ -79,3 +75,7 @@ export function buildApp() {
 
   return app;
 }
+
+// Instantiate and default export the app instance so Vercel Serverless can run it
+const app = buildApp();
+export default app;
